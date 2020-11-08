@@ -8,8 +8,9 @@ using namespace std;
 
 int n;
 int from, to;
-queue<pair<string, int>> q;
-int visit[10000] = {0, };
+bool visit[10000] = {false, };
+pair<char, int> parent[10000];
+queue<pair<int, int>> q;
 
 int oper_D(int &num)
 {
@@ -71,48 +72,65 @@ int oper_R(int &num)
 	return temp;
 }
 
-void push_elem(char c, int temp, pair<string, int> front_elem)
+void push_elem(char c, int current, int temp, int count)
 {
-	string str_temp;
-
-	str_temp = front_elem.first;
-	if (visit[temp] != -1 && (visit[temp] == 0 || visit[temp] >= (str_temp.length() + 1)))
+	if (visit[temp] == false)
 	{
-		str_temp.push_back(c);
-		q.push(make_pair(str_temp, temp));
-		visit[temp] = str_temp.length();
+		q.push(make_pair(temp, count));
+		parent[temp] = make_pair(c, current);
+		visit[temp] = true;
 	}
 }
 
-string BFS()
+void print_answer()
+{
+	vector<char> answer;
+	int iter;
+
+	iter = to;
+	while (iter != from)
+	{
+		answer.push_back(parent[iter].first);
+		iter = parent[iter].second;
+	}
+	reverse(answer.begin(), answer.end());
+	for (int i = 0; i < answer.size(); i++)
+	{
+		cout << answer[i];
+	}
+	cout << "\n";
+}
+
+void BFS()
 {
 	int temp;
-	string str_temp = "";
-	pair<string, int> front_elem;
+	pair<int, int> current;
 
-	q.push(make_pair(str_temp, from));
-	visit[from] = -1;
+	q.push(make_pair(from, 1));
+	visit[from] = true;
 	while(!q.empty())
 	{
-		front_elem = q.front();
-		if (front_elem.second == to)
-			return front_elem.first;
+		current = q.front();
+		if (current.first == to)
+		{
+			print_answer();
+			break ;
+		}
 		q.pop();
-		temp = oper_D(front_elem.second);
-		push_elem('D', temp, front_elem);
-		temp = oper_S(front_elem.second);
-		push_elem('S', temp, front_elem);
-		temp = oper_L(front_elem.second);
-		push_elem('L', temp, front_elem);
-		temp = oper_R(front_elem.second);
-		push_elem('R', temp, front_elem);
+		temp = oper_D(current.first);
+		push_elem('D', current.first, temp, current.second + 1);
+		temp = oper_S(current.first);
+		push_elem('S', current.first, temp, current.second + 1);
+		temp = oper_L(current.first);
+		push_elem('L', current.first, temp, current.second + 1);
+		temp = oper_R(current.first);
+		push_elem('R', current.first, temp, current.second + 1);
 	}
-	return "";
 }
 
-void clear_queue(queue<pair<string, int>> &q)
+void clear_queue(queue<pair<int, int>> &q)
 {
-    queue<pair<string, int>> empty;
+    queue<pair<int, int>> empty;
     swap(q, empty);
 }
 
@@ -124,7 +142,7 @@ int main()
 	for (int i = 0; i < n; i++)
 	{
 		cin >> from >> to;
-		cout << BFS() << "\n";
+		BFS();
 		clear_queue(q);
 		memset(visit, 0, sizeof(visit));
 	}
